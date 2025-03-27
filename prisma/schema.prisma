@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Definimos los modelos basados en nuestra aplicación actual
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  player1   String
+  player2   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  matchesAsTeam1 Match[] @relation("Team1")
+  matchesAsTeam2 Match[] @relation("Team2")
+}
+
+model Match {
+  id         String   @id @default(cuid())
+  team1Id    String
+  team2Id    String
+  team1Games Int
+  team2Games Int
+  date       DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relaciones
+  team1 Team @relation("Team1", fields: [team1Id], references: [id], onDelete: Cascade)
+  team2 Team @relation("Team2", fields: [team2Id], references: [id], onDelete: Cascade)
+}
+
