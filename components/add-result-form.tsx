@@ -16,30 +16,28 @@ import type { Team } from "@/lib/types"
 
 const formSchema = z
   .object({
-    team1Id: z.string().min(1, "Selecciona la pareja 1"),
-    team2Id: z.string().min(1, "Selecciona la pareja 2"),
-    team1Games: z.coerce.number().min(0, "Mínimo 0 juegos").max(7, "Máximo 7 juegos"),
-    team2Games: z.coerce.number().min(0, "Mínimo 0 juegos").max(7, "Máximo 7 juegos"),
+    pair1Name: z.string().min(1, "Selecciona la pareja 1"),
+    pair2Name: z.string().min(1, "Selecciona la pareja 2"),
+    setPair1: z.coerce.number().min(0, "Mínimo 0 juegos").max(7, "Máximo 7 juegos"),
+    setPair2: z.coerce.number().min(0, "Mínimo 0 juegos").max(7, "Máximo 7 juegos"),
   })
-  .refine((data) => data.team1Id !== data.team2Id, {
+  .refine((data) => data.pair1Name !== data.pair2Name, {
     message: "Las parejas deben ser diferentes",
-    path: ["team2Id"],
+    path: ["pair2Name"],
   })
   .refine(
     (data) => {
       // Validar que el resultado sea válido para un partido de pádel
-      // Un equipo debe tener 6 juegos (o 7 en caso de tie-break)
-      // Si un equipo tiene 6, el otro debe tener 0-4 (o 5-6 si hay tie-break)
       return (
-        (data.team1Games === 6 && data.team2Games <= 4) ||
-        (data.team2Games === 6 && data.team1Games <= 4) ||
-        (data.team1Games === 7 && (data.team2Games === 5 || data.team2Games === 6)) ||
-        (data.team2Games === 7 && (data.team1Games === 5 || data.team1Games === 6))
+        (data.setPair1 === 6 && data.setPair2 <= 4) ||
+        (data.setPair2 === 6 && data.setPair1 <= 4) ||
+        (data.setPair1 === 7 && (data.setPair2 === 5 || data.setPair2 === 6)) ||
+        (data.setPair2 === 7 && (data.setPair1 === 5 || data.setPair1 === 6))
       )
     },
     {
       message: "El resultado debe ser válido (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6, etc.)",
-      path: ["team1Games"],
+      path: ["setPair1"],
     },
   )
 
@@ -52,10 +50,10 @@ export default function AddResultForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      team1Id: "",
-      team2Id: "",
-      team1Games: 0,
-      team2Games: 0,
+      pair1Name: "",
+      pair2Name: "",
+      setPair1: 0,
+      setPair2: 0,
     },
   })
 
@@ -83,7 +81,12 @@ export default function AddResultForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
     try {
-      await addMatchResult(values)
+      await addMatchResult({
+        pair1Name: values.pair1Name,
+        pair2Name: values.pair2Name,
+        setPair1: values.setPair1,
+        setPair2: values.setPair2,
+      })
       toast({
         title: "Resultado añadido",
         description: "El resultado del partido ha sido registrado correctamente",
@@ -113,7 +116,7 @@ export default function AddResultForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name="team1Id"
+                name="pair1Name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Pareja 1</FormLabel>
@@ -137,7 +140,7 @@ export default function AddResultForm() {
               />
               <FormField
                 control={form.control}
-                name="team2Id"
+                name="pair2Name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Pareja 2</FormLabel>
@@ -164,7 +167,7 @@ export default function AddResultForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name="team1Games"
+                name="setPair1"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Juegos Pareja 1</FormLabel>
@@ -177,7 +180,7 @@ export default function AddResultForm() {
               />
               <FormField
                 control={form.control}
-                name="team2Games"
+                name="setPair2"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Juegos Pareja 2</FormLabel>
@@ -206,4 +209,3 @@ export default function AddResultForm() {
     </Card>
   )
 }
-
