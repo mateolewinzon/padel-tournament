@@ -40,6 +40,18 @@ export default function Navbar() {
               Parejas
             </span>
           </Link>
+          <Link
+            href="/partidos"
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-primary",
+              pathname === "/partidos" ? "text-primary" : "text-muted-foreground",
+            )}
+          >
+            <span className="flex items-center gap-1">
+              Partidos
+            </span>
+          </Link>
+          
         </nav>
         <div className="ml-auto flex items-center space-x-4">
           <ModeToggle />
