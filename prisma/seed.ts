@@ -3,80 +3,55 @@ import { PrismaClient } from "@prisma/client"
 const prisma = new PrismaClient()
 
 async function main() {
-  // Limpiar la base de datos
-  await prisma.match.deleteMany({})
-  await prisma.team.deleteMany({})
+  // Obtener todos los jugadores existentes
+  const jugadores = await prisma.jugador.findMany()
 
-  // Crear equipos
-  const team1 = await prisma.team.create({
-    data: {
-      name: "Los Campeones",
-      player1: "Juan Pérez",
-      player2: "Ana García",
-    },
+  if (jugadores.length === 0) {
+    throw new Error("No hay jugadores en la base de datos")
+  }
+  console.log(`Encontrados ${jugadores.length} jugadores`)
+
+  // Obtener todas las parejas existentes
+  const parejas = await prisma.pareja.findMany()
+  if (parejas.length === 0) {
+    throw new Error("No hay parejas en la base de datos")
+  }
+  console.log(`Encontradas ${parejas.length} parejas`)
+
+  // Obtener todos los partidos existentes
+  const partidos = await prisma.partido.findMany()
+  
+  console.log(`Encontrados ${partidos.length} partidos`)
+  
+  // Mostrar la información recuperada
+  console.log("\nJugadores:")
+  jugadores.forEach(j => {
+    console.log(`- ${j.nombre} ${j.apellido} (DNI: ${j.dni})`)
   })
 
-  const team2 = await prisma.team.create({
-    data: {
-      name: "Raquetas de Fuego",
-      player1: "Carlos López",
-      player2: "María Rodríguez",
-    },
+  console.log("\nParejas:")
+  parejas.forEach(p => {
+    console.log(`- ${p.nombre_pareja} (Jugador1: ${p.dni_jugador1}, Jugador2: ${p.dni_jugador2})`)
   })
 
-  const team3 = await prisma.team.create({
-    data: {
-      name: "Dúo Dinámico",
-      player1: "Pedro Sánchez",
-      player2: "Laura Martínez",
-    },
+  console.log("\nPartidos:")
+  partidos.forEach(p => {
+    const resultado = p.resultado
+    console.log(`- Partido ${p.id_partido}: ${p.nombre_pareja1} vs ${p.nombre_pareja2}`)
+    console.log(`  Estado: ${p.estado}`)
+    if (resultado) {
+      console.log(`  Resultado: ${resultado.set_pareja1}-${resultado.set_pareja2}`)
+      console.log(`  Ganador: ${resultado.ganador || "No definido"}`)
+    }
   })
 
-  const team4 = await prisma.team.create({
-    data: {
-      name: "Pádel Masters",
-      player1: "Miguel Fernández",
-      player2: "Sofía González",
-    },
-  })
-
-  // Crear partidos
-  await prisma.match.create({
-    data: {
-      team1Id: team1.id,
-      team2Id: team2.id,
-      team1Games: 6,
-      team2Games: 3,
-    },
-  })
-
-  await prisma.match.create({
-    data: {
-      team1Id: team3.id,
-      team2Id: team4.id,
-      team1Games: 4,
-      team2Games: 6,
-    },
-  })
-
-  await prisma.match.create({
-    data: {
-      team1Id: team1.id,
-      team2Id: team3.id,
-      team1Games: 6,
-      team2Games: 4,
-    },
-  })
-
-  console.log("Base de datos sembrada correctamente")
 }
 
 main()
   .catch((e) => {
-    console.error(e)
+    console.error("Error:", e)
     process.exit(1)
   })
   .finally(async () => {
     await prisma.$disconnect()
   })
-

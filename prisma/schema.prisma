@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,32 +7,43 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Definimos los modelos basados en nuestra aplicación actual
-model Team {
-  id        String   @id @default(cuid())
-  name      String
-  player1   String
-  player2   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relaciones
-  matchesAsTeam1 Match[] @relation("Team1")
-  matchesAsTeam2 Match[] @relation("Team2")
+model jugador {
+  dni                                 String   @id @db.VarChar(20)
+  nombre                              String   @db.VarChar(50)
+  apellido                            String   @db.VarChar(50)
+  pareja_pareja_dni_jugador1Tojugador pareja[] @relation("pareja_dni_jugador1Tojugador")
+  pareja_pareja_dni_jugador2Tojugador pareja[] @relation("pareja_dni_jugador2Tojugador")
 }
 
-model Match {
-  id         String   @id @default(cuid())
-  team1Id    String
-  team2Id    String
-  team1Games Int
-  team2Games Int
-  date       DateTime @default(now())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  // Relaciones
-  team1 Team @relation("Team1", fields: [team1Id], references: [id], onDelete: Cascade)
-  team2 Team @relation("Team2", fields: [team2Id], references: [id], onDelete: Cascade)
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model pareja {
+  nombre_pareja                          String      @id @db.VarChar(50)
+  dni_jugador1                           String      @db.VarChar(20)
+  dni_jugador2                           String      @db.VarChar(20)
+  jugador_pareja_dni_jugador1Tojugador   jugador     @relation("pareja_dni_jugador1Tojugador", fields: [dni_jugador1], references: [dni], onDelete: NoAction, onUpdate: NoAction)
+  jugador_pareja_dni_jugador2Tojugador   jugador     @relation("pareja_dni_jugador2Tojugador", fields: [dni_jugador2], references: [dni], onDelete: NoAction, onUpdate: NoAction)
+  partido_partido_nombre_pareja1Topareja partido[]   @relation("partido_nombre_pareja1Topareja")
+  partido_partido_nombre_pareja2Topareja partido[]   @relation("partido_nombre_pareja2Topareja")
+  resultado                              resultado[]
 }
 
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model partido {
+  id_partido                            Int        @id @default(autoincrement())
+  nombre_pareja1                        String     @db.VarChar(50)
+  nombre_pareja2                        String     @db.VarChar(50)
+  estado                                String?    @default("programado") @db.VarChar(20)
+  pareja_partido_nombre_pareja1Topareja pareja     @relation("partido_nombre_pareja1Topareja", fields: [nombre_pareja1], references: [nombre_pareja], onDelete: NoAction, onUpdate: NoAction)
+  pareja_partido_nombre_pareja2Topareja pareja     @relation("partido_nombre_pareja2Topareja", fields: [nombre_pareja2], references: [nombre_pareja], onDelete: NoAction, onUpdate: NoAction)
+  resultado                             resultado?
+}
+
+model resultado {
+  id_resultado Int     @id @default(autoincrement())
+  id_partido   Int     @unique
+  set_pareja1  Int?
+  set_pareja2  Int?
+  ganador      String? @db.VarChar(50)
+  pareja       pareja? @relation(fields: [ganador], references: [nombre_pareja], onDelete: NoAction, onUpdate: NoAction)
+  partido      partido @relation(fields: [id_partido], references: [id_partido], onDelete: NoAction, onUpdate: NoAction)
+}
