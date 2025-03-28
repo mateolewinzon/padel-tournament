@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import prisma from "./prisma"
+import { TeamStanding } from "./types";
 
 // Update types to match new schema
 interface Team {
@@ -21,7 +22,6 @@ interface Match {
   winner?: string;
 }
 
-// Acciones para parejas (teams)
 export async function getTeams(): Promise<Team[]> {
   try {
     const pairs = await prisma.pareja.findMany({
@@ -39,13 +39,14 @@ export async function getTeams(): Promise<Team[]> {
       name: pair.nombre_pareja,
       player1Dni: pair.dni_jugador1,
       player2Dni: pair.dni_jugador2,
+      player1: `${pair.jugador_pareja_dni_jugador1Tojugador.nombre} ${pair.jugador_pareja_dni_jugador1Tojugador.apellido}`,
+      player2: `${pair.jugador_pareja_dni_jugador2Tojugador.nombre} ${pair.jugador_pareja_dni_jugador2Tojugador.apellido}`,
     }))
   } catch (error) {
     console.error("Error fetching teams:", error)
     throw new Error("No se pudieron obtener las parejas")
   }
 }
-
 export async function addTeam(data: { 
   teamName: string; 
   player1Dni: string; 
@@ -139,12 +140,6 @@ export async function addMatchResult(data: {
         nombre_pareja1: data.pair1Name,
         nombre_pareja2: data.pair2Name,
         estado: "finalizado",
-        pareja_partido_nombre_pareja1Topareja: {
-          connect: { nombre_pareja: data.pair1Name }
-        },
-        pareja_partido_nombre_pareja2Topareja: {
-          connect: { nombre_pareja: data.pair2Name }
-        },
         resultado: {
           create: {
             set_pareja1: data.setPair1,
@@ -166,10 +161,10 @@ export async function addMatchResult(data: {
       id: match.id_partido,
       pair1Name: match.nombre_pareja1,
       pair2Name: match.nombre_pareja2,
-      setPair1: match.resultado?.set_pareja1,
-      setPair2: match.resultado?.set_pareja2,
-      status: match.estado,
-      winner: match.resultado?.ganador,
+      setPair1: match.resultado?.set_pareja1 ?? undefined,
+      setPair2: match.resultado?.set_pareja2?? undefined,
+      status: match.estado ?? "unknown",
+      winner: match.resultado?.ganador ?? "unknown",
     };
   } catch (error) {
     console.error("Error adding match result:", error);

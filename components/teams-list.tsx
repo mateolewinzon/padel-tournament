@@ -31,7 +31,10 @@ export default function TeamsList() {
     setIsLoading(true)
     try {
       const data = await getTeams()
-      setTeams(data)
+      const formattedData = data.map((team) => ({
+        ...team,
+      }))
+      setTeams(formattedData)
     } catch (error) {
       console.error("Error fetching teams:", error)
       toast({
