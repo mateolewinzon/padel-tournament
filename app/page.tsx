@@ -13,20 +13,21 @@ export default async function TournamentsPage() {
           <Link
             key={tournament.id}
             href={`/tournament/${tournament.id}`}
-            className="block rounded-lg shadow hover:shadow-lg transition-shadow"
+            className="block p-1 rounded-lg shadow hover:shadow-lg transition-shadow"
           >
-            <div className="aspect-video mb-4">
+            <div className="aspect-video">
               <img
                 src={tournament.foto_url}
                 alt={tournament.nombre_torneo}
                 className="w-full h-full object-cover rounded"
               />
             </div>
+            <div className="p-3">
             <h2 className="text-xl font-semibold mb-2">{tournament.nombre_torneo}</h2>
             <p className="mb-2">{tournament.lugar}</p>
             <p className="">
               {new Date(tournament.fecha).toLocaleDateString()}
-            </p>
+              </p></div>
           </Link>
         ))}
       </div>

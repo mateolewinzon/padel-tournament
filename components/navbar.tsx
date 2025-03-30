@@ -93,12 +93,12 @@ export default function Navbar() {
         </nav>
         <div className="ml-auto flex items-center space-x-4">
           <ModeToggle />
-          <button
+          {/* <button
             onClick={handleLogout}
             className="text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
           >
             Cerrar Sesión
-          </button>
+          </button> */}
         </div>
       </div>
     </header>
