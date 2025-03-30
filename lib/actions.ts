@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import prisma from "./prisma"
 import { TeamStanding } from "./types";
-
+import { createClient } from "./supabase/server";
 
 export async function getTeams() {
   try {
@@ -86,8 +86,6 @@ export async function addMatchResult(data: {
   setPair2: number;
 }) {
   try {
-    console.log("Received data:", data);
-
     // Validate input
     if (!data.pair1Id) throw new Error("pair1Id es requerido");
     if (!data.pair2Id) throw new Error("pair2Id es requerido");
@@ -128,8 +126,6 @@ export async function addMatchResult(data: {
       },
     });
 
-    console.log("Match created:", match);
-
     revalidatePath("/");
 
     return {
@@ -168,8 +164,6 @@ export async function getStandings(tournamentId = 7): Promise<TeamStanding[]> {
         estado: "finalizado", // Only consider finished matches
       },
     });
-
-    console.log("Pairs:", pairs);
 
     // Initialize standings for each pair
     const standings: Record<string, TeamStanding> = {};
@@ -260,4 +254,49 @@ export async function getPastMatches() {
     },
   });
   return matches;
+}
+
+export async function getTournaments() {
+  const tournaments = await prisma.torneo.findMany({
+    orderBy: { id: "desc" },
+  });
+  return tournaments;
+}
+
+export async function getTournament(id: string) {
+  const tournament = await prisma.torneo.findUnique({
+    where: { id: parseInt(id) },
+  });
+  return tournament;
+}
+
+export async function getTournamentImages(
+  tournamentId: string,
+  limit: number = 100
+) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage
+    .from("imagenes")
+    .list(tournamentId, { limit: limit });
+
+  if (error) {
+    console.error("Error fetching tournament images:", error);
+    return [];
+  }
+
+  console.log("data", data);
+
+  // Generate public URLs for each image
+  const imageUrls = data
+    .filter((file) => file.name.match(/\.(jpg|jpeg|png|gif)$/i))
+    .map((file) => {
+      const {
+        data: { publicUrl },
+      } = supabase.storage
+        .from("imagenes")
+        .getPublicUrl(`${tournamentId}/${file.name}`);
+      return publicUrl;
+    });
+
+  return imageUrls;
 }

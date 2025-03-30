@@ -12,34 +12,14 @@ export async function POST(req: Request) {
   });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 401 });
+    return NextResponse.json({ error: "No user ID returned" }, { status: 500 });
   }
 
   // Check user's role
   const userId = data.user?.id;
   if (!userId) {
-    return NextResponse.json({ error: "No user ID returned" }, { status: 500 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("user_id", userId)
-    .single();
-
-  if (profileError || !profile) {
-    return NextResponse.json({ error: "Profile not found" }, { status: 500 });
-  }
-
-  if (profile.role !== "admin") {
-    // Log out the user if not admin and return an error
-    await supabase.auth.signOut();
-    return NextResponse.json(
-      { error: "Solo los administradores pueden acceder" },
-      { status: 403 }
-    );
-  }
-
-  // If admin, return success with redirect
   return NextResponse.json({ redirect: "/teams" }, { status: 200 });
 }

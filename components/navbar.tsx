@@ -56,7 +56,7 @@ export default function Navbar() {
         <div className="mr-4 flex">
           <Link href="/" className="flex items-center space-x-2">
             <Trophy className="h-6 w-6" />
-            <span className="font-bold">Torneo de Pádel</span>
+            <span className="font-bold hidden md:block">Torneo de Pádel</span>
           </Link>
         </div>
         <nav className="flex items-center space-x-4 lg:space-x-6 mx-6">

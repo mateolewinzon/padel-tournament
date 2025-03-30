@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import TeamForm from "@/components/team-form"
 import TeamsList from "@/components/teams-list"
-import Protected from "@/components/Protected"
+import { Protected } from "@/components/Protected"
 
 export default function TeamsPage() {
   return (

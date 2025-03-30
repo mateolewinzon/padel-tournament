@@ -47,10 +47,15 @@ model resultado {
   partido      partido @relation(fields: [id_partido], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
+enum role {
+  admin
+  user
+}
+
 model profiles {
   user_id   String   @unique
   name      String
-  role      String   @default("user")
+  role      role   @default(user)
   created_at DateTime @default(now())
 }
 
