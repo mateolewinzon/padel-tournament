@@ -1,8 +1,8 @@
 // components/past-matches-list.tsx
 import { getPastMatches } from "@/lib/actions"
 
-export default async function PastMatchesList() {
-  const matches = await getPastMatches()
+export default async function PastMatchesList({ tournamentId }: { tournamentId: string }) {
+  const matches = await getPastMatches(tournamentId)
 
   return (
     <div className="space-y-4">
@@ -12,12 +12,13 @@ export default async function PastMatchesList() {
       ) : (
         <ul className="space-y-2">
           {matches.map((match) => {
+            console.log(match)
             // Determina el ganador y el perdedor
-            const isPareja1Winner = match.resultado?.ganador === match.nombre_pareja1
-            const isPareja2Winner = match.resultado?.ganador === match.nombre_pareja2
+            const isPareja1Winner = match.resultado?.ganador === match.id_pareja1
+            const isPareja2Winner = match.resultado?.ganador === match.id_pareja2
 
             return (
-              <li key={match.id_partido} className="border p-4 rounded-md">
+              <li key={match.id} className="border p-4 rounded-md">
                 <p>
                   <strong
                     className={
@@ -28,7 +29,7 @@ export default async function PastMatchesList() {
                         : "text-gray-700"
                     }
                   >
-                    {match.nombre_pareja1}
+                    {match.pareja1.pareja.nombre_pareja}
                   </strong>{" "}
                   vs{" "}
                   <strong
@@ -40,7 +41,7 @@ export default async function PastMatchesList() {
                         : "text-gray-700"
                     }
                   >
-                    {match.nombre_pareja2}
+                    {match.pareja2.pareja.nombre_pareja}
                   </strong>
                 </p>
                 <p>

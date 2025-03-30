@@ -5,7 +5,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Trash2 } from "lucide-react"
 import { getTeams, removeTeam } from "@/lib/actions"
-import type { Team } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -18,13 +17,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { pareja } from "@prisma/client"
 
 export default function TeamsList() {
-  const [teams, setTeams] = useState<Team[]>([])
+  const [teams, setTeams] = useState<pareja[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [teamToDelete, setTeamToDelete] = useState<Team | null>(null)
+  const [teamToDelete, setTeamToDelete] = useState<pareja | null>(null)
   const { toast } = useToast()
 
   const fetchTeams = async () => {
@@ -51,7 +51,7 @@ export default function TeamsList() {
     fetchTeams()
   }, [])
 
-  const openDeleteDialog = (team: Team) => {
+  const openDeleteDialog = (team: pareja) => {
     setTeamToDelete(team)
     setDeleteDialogOpen(true)
   }
@@ -61,7 +61,7 @@ export default function TeamsList() {
 
     setIsDeleting(true)
     try {
-      await removeTeam(teamToDelete.id)
+      await removeTeam(teamToDelete.nombre_pareja)
       toast({
         title: "Pareja eliminada",
         description: "La pareja y sus partidos han sido eliminados correctamente",
@@ -118,9 +118,9 @@ export default function TeamsList() {
               ) : (
                 teams.map((team) => (
                   <TableRow key={team.id}>
-                    <TableCell className="font-medium">{team.name}</TableCell>
-                    <TableCell>{team.player1}</TableCell>
-                    <TableCell>{team.player2}</TableCell>
+                    <TableCell className="font-medium">{team.nombre_pareja}</TableCell>
+                    <TableCell>{team.id_jugador1}</TableCell>
+                    <TableCell>{team.id_jugador2}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
@@ -146,7 +146,7 @@ export default function TeamsList() {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción eliminará la pareja "{teamToDelete?.name}" y todos sus partidos asociados. Esta acción no se
+              Esta acción eliminará la pareja "{teamToDelete?.nombre_pareja}" y todos sus partidos asociados. Esta acción no se
               puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>

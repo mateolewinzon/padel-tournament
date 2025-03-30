@@ -10,6 +10,7 @@ import StandingsTable from "@/components/standings-table"
 import AddResultForm from "@/components/add-result-form"
 import { getIsAdmin } from "@/components/Protected"
 import { getTournament, getTournamentImages } from "@/lib/actions"
+import PastMatchesList from "@/components/past-matches-list"
 
 export default async function TournamentPage({ params }: { params: { id: string } }) {
     const paramsData = await params
@@ -47,8 +48,9 @@ export default async function TournamentPage({ params }: { params: { id: string 
             </div>
 
             <Tabs defaultValue="standings" className="w-full max-w-4xl mx-auto">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="standings">Clasificación</TabsTrigger>
+                    <TabsTrigger value="add-match">Partidos</TabsTrigger>
                     <TabsTrigger disabled={!isAdmin} value="add-result">Añadir Resultado</TabsTrigger>
                 </TabsList>
                 <TabsContent value="standings" className="mt-6">
@@ -59,6 +61,9 @@ export default async function TournamentPage({ params }: { params: { id: string 
                         <AddResultForm />
                     </TabsContent>
                 )}
+                <TabsContent value="add-match" className="mt-6">
+                    <PastMatchesList tournamentId={id} />
+                </TabsContent>
             </Tabs>
         </div>
     )

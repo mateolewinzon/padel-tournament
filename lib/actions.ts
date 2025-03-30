@@ -21,62 +21,52 @@ export async function getTeams() {
     throw new Error("No se pudieron obtener las parejas");
   }
 }
-// export async function addTeam(data: {
-//   teamName: string;
-//   player1Dni: string;
-//   player2Dni: string
-// }){
-//   try {
-//     const pair = await prisma.pareja.create({
-//       data: {
-//         nombre_pareja: data.teamName,
-//         jugador1:{
-//             create:{
-//               documento: data.player1Dni,
-//               nombre: data.player1Nombre,
-//               apellido: data.player1Apellido,
-//             }
-//         },
-//         jugador2:{
-//           create:{
-//             documento: data.player2Dni,
-//             nombre: data.player2Nombre,
-//             apellido: data.player2Apellido,
-//           }
-//     })
+export async function addTeam(data: {
+  teamName: string;
+  player1Dni: string;
+  player2Dni: string;
+}) {
+  try {
+    const pair = await prisma.pareja.create({
+      data: {
+        nombre_pareja: data.teamName,
+        id_jugador1: parseInt(data.player1Dni),
+        id_jugador2: parseInt(data.player2Dni),
+      },
+    });
 
-//     revalidatePath("/teams")
-//     revalidatePath("/")
+    revalidatePath("/teams");
+    revalidatePath("/");
 
-//     return {
-//       id: pair.nombre_pareja,
-//       name: pair.nombre_pareja,
-//       player1Dni: pair.dni_jugador1,
-//       player2Dni: pair.dni_jugador2,
-//     }
-//   } catch (error) {
-//     console.error("Error adding team:", error)
-//     throw new Error("No se pudo añadir la pareja")
-//   }
-// }
+    return {
+      id: pair.nombre_pareja,
+      name: pair.nombre_pareja,
+      player1Dni: pair.id_jugador1,
+      player2Dni: pair.id_jugador2,
+    };
+  } catch (error) {
+    console.error("Error adding team:", error);
+    throw new Error("No se pudo añadir la pareja");
+  }
+}
 
-// export async function removeTeam(teamName: string): Promise<void> {
-//   try {
-//     // Note: Related matches won't be automatically deleted due to NoAction constraint
-//     // You might want to delete related matches first if needed
-//     await prisma.pareja.delete({
-//       where: {
-//         nombre_pareja: teamName,
-//       },
-//     })
+export async function removeTeam(teamName: string): Promise<void> {
+  try {
+    // Note: Related matches won't be automatically deleted due to NoAction constraint
+    // You might want to delete related matches first if needed
+    await prisma.pareja.delete({
+      where: {
+        nombre_pareja: teamName,
+      },
+    });
 
-//     revalidatePath("/teams")
-//     revalidatePath("/")
-//   } catch (error) {
-//     console.error("Error removing team:", error)
-//     throw new Error("No se pudo eliminar la pareja")
-//   }
-// }
+    revalidatePath("/teams");
+    revalidatePath("/");
+  } catch (error) {
+    console.error("Error removing team:", error);
+    throw new Error("No se pudo eliminar la pareja");
+  }
+}
 
 // Acciones para partidos
 export async function addMatchResult(data: {
@@ -237,11 +227,16 @@ export async function getStandings(tournamentId = 7): Promise<TeamStanding[]> {
   }
 }
 
-export async function getPastMatches() {
+export async function getPastMatches(tournamentId: string) {
   const matches = await prisma.partido.findMany({
+    where: {
+      id_torneo: parseInt(tournamentId),
+    },
     orderBy: { id: "desc" },
     select: {
       id: true,
+      pareja1: { include: { pareja: true } },
+      pareja2: { include: { pareja: true } },
       id_pareja1: true,
       id_pareja2: true,
       resultado: {

@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
-import { addTeam } from "@/lib/actions"
+// import { addTeam } from "@/lib/actions"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 
@@ -36,7 +36,7 @@ export default function TeamForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true)
     try {
-      await addTeam(values)
+      // await addTeam(values)
       toast({
         title: "Pareja añadida",
         description: "La pareja ha sido registrada correctamente",
