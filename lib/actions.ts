@@ -4,153 +4,122 @@ import { revalidatePath } from "next/cache"
 import prisma from "./prisma"
 import { TeamStanding } from "./types";
 
-// Update types to match new schema
-interface Team {
-  id: string;
-  name: string;
-  player1Dni: string;
-  player2Dni: string;
-}
 
-interface Match {
-  id: number;
-  pair1Name: string;
-  pair2Name: string;
-  setPair1?: number;
-  setPair2?: number;
-  status: string;
-  winner?: string;
-}
-
-export async function getTeams(): Promise<Team[]> {
+export async function getTeams() {
   try {
-    const pairs = await prisma.pareja.findMany({
+    return await prisma.pareja.findMany({
       orderBy: {
         nombre_pareja: "asc",
       },
       include: {
-        jugador_pareja_dni_jugador1Tojugador: true,
-        jugador_pareja_dni_jugador2Tojugador: true,
+        jugador1: true,
+        jugador2: true,
       },
-    }) as Array<{
-      nombre_pareja: string;
-      dni_jugador1: string;
-      dni_jugador2: string;
-      jugador_pareja_dni_jugador1Tojugador: { nombre: string; apellido: string };
-      jugador_pareja_dni_jugador2Tojugador: { nombre: string; apellido: string };
-    }>
-
-    return pairs.map((pair) => ({
-      id: pair.nombre_pareja,
-      name: pair.nombre_pareja,
-      player1Dni: pair.dni_jugador1,
-      player2Dni: pair.dni_jugador2,
-      player1: `${pair.jugador_pareja_dni_jugador1Tojugador.nombre} ${pair.jugador_pareja_dni_jugador1Tojugador.apellido}`,
-      player2: `${pair.jugador_pareja_dni_jugador2Tojugador.nombre} ${pair.jugador_pareja_dni_jugador2Tojugador.apellido}`,
-    }))
+    });
   } catch (error) {
-    console.error("Error fetching teams:", error)
-    throw new Error("No se pudieron obtener las parejas")
+    console.error("Error fetching teams:", error);
+    throw new Error("No se pudieron obtener las parejas");
   }
 }
-export async function addTeam(data: { 
-  teamName: string; 
-  player1Dni: string; 
-  player2Dni: string 
-}): Promise<Team> {
-  try {
-    // Verify players exist
-    const player1 = await prisma.jugador.findUnique({ where: { dni: data.player1Dni } })
-    const player2 = await prisma.jugador.findUnique({ where: { dni: data.player2Dni } })
-    
-    if (!player1 || !player2) {
-      throw new Error("Uno o ambos jugadores no existen")
-    }
+// export async function addTeam(data: {
+//   teamName: string;
+//   player1Dni: string;
+//   player2Dni: string
+// }){
+//   try {
+//     const pair = await prisma.pareja.create({
+//       data: {
+//         nombre_pareja: data.teamName,
+//         jugador1:{
+//             create:{
+//               documento: data.player1Dni,
+//               nombre: data.player1Nombre,
+//               apellido: data.player1Apellido,
+//             }
+//         },
+//         jugador2:{
+//           create:{
+//             documento: data.player2Dni,
+//             nombre: data.player2Nombre,
+//             apellido: data.player2Apellido,
+//           }
+//     })
 
-    const pair = await prisma.pareja.create({
-      data: {
-        nombre_pareja: data.teamName,
-        dni_jugador1: data.player1Dni,
-        dni_jugador2: data.player2Dni,
-      },
-    })
+//     revalidatePath("/teams")
+//     revalidatePath("/")
 
-    revalidatePath("/teams")
-    revalidatePath("/")
+//     return {
+//       id: pair.nombre_pareja,
+//       name: pair.nombre_pareja,
+//       player1Dni: pair.dni_jugador1,
+//       player2Dni: pair.dni_jugador2,
+//     }
+//   } catch (error) {
+//     console.error("Error adding team:", error)
+//     throw new Error("No se pudo añadir la pareja")
+//   }
+// }
 
-    return {
-      id: pair.nombre_pareja,
-      name: pair.nombre_pareja,
-      player1Dni: pair.dni_jugador1,
-      player2Dni: pair.dni_jugador2,
-    }
-  } catch (error) {
-    console.error("Error adding team:", error)
-    throw new Error("No se pudo añadir la pareja")
-  }
-}
+// export async function removeTeam(teamName: string): Promise<void> {
+//   try {
+//     // Note: Related matches won't be automatically deleted due to NoAction constraint
+//     // You might want to delete related matches first if needed
+//     await prisma.pareja.delete({
+//       where: {
+//         nombre_pareja: teamName,
+//       },
+//     })
 
-export async function removeTeam(teamName: string): Promise<void> {
-  try {
-    // Note: Related matches won't be automatically deleted due to NoAction constraint
-    // You might want to delete related matches first if needed
-    await prisma.pareja.delete({
-      where: {
-        nombre_pareja: teamName,
-      },
-    })
-
-    revalidatePath("/teams")
-    revalidatePath("/")
-  } catch (error) {
-    console.error("Error removing team:", error)
-    throw new Error("No se pudo eliminar la pareja")
-  }
-}
+//     revalidatePath("/teams")
+//     revalidatePath("/")
+//   } catch (error) {
+//     console.error("Error removing team:", error)
+//     throw new Error("No se pudo eliminar la pareja")
+//   }
+// }
 
 // Acciones para partidos
 export async function addMatchResult(data: {
-  pair1Name: string
-  pair2Name: string
-  setPair1: number
-  setPair2: number
-}): Promise<Match> {
+  pair1Id: number;
+  pair2Id: number;
+  setPair1: number;
+  setPair2: number;
+}) {
   try {
     console.log("Received data:", data);
 
     // Validate input
-    if (!data.pair1Name) throw new Error("pair1Name es requerido");
-    if (!data.pair2Name) throw new Error("pair2Name es requerido");
-    if (data.setPair1 === undefined || data.setPair1 === null) throw new Error("setPair1 es requerido");
-    if (data.setPair2 === undefined || data.setPair2 === null) throw new Error("setPair2 es requerido");
+    if (!data.pair1Id) throw new Error("pair1Id es requerido");
+    if (!data.pair2Id) throw new Error("pair2Id es requerido");
+    if (data.setPair1 === undefined || data.setPair1 === null)
+      throw new Error("setPair1 es requerido");
+    if (data.setPair2 === undefined || data.setPair2 === null)
+      throw new Error("setPair2 es requerido");
 
     // Check if pairs exist
     const pair1 = await prisma.pareja.findUnique({
-      where: { nombre_pareja: data.pair1Name }
+      where: { id: data.pair1Id },
     });
     const pair2 = await prisma.pareja.findUnique({
-      where: { nombre_pareja: data.pair2Name }
+      where: { id: data.pair2Id },
     });
 
-    if (!pair1) throw new Error(`La pareja ${data.pair1Name} no existe`);
-    if (!pair2) throw new Error(`La pareja ${data.pair2Name} no existe`);
-
-    console.log("Creating match with pairs:", {
-      pair1: data.pair1Name,
-      pair2: data.pair2Name
-    });
+    if (!pair1) throw new Error(`La pareja ${data.pair1Id} no existe`);
+    if (!pair2) throw new Error(`La pareja ${data.pair2Id} no existe`);
 
     // Create the match and its result
     const match = await prisma.partido.create({
       data: {
-        nombre_pareja1: data.pair1Name,
-        nombre_pareja2: data.pair2Name,
+        id_torneo: 1,
+        id_pareja1: data.pair1Id,
+        id_pareja2: data.pair2Id,
         estado: "finalizado",
         resultado: {
           create: {
             set_pareja1: data.setPair1,
             set_pareja2: data.setPair2,
-            ganador: data.setPair1 > data.setPair2 ? data.pair1Name : data.pair2Name,
+            ganador:
+              data.setPair1 > data.setPair2 ? data.pair1Id : data.pair2Id,
           },
         },
       },
@@ -164,11 +133,11 @@ export async function addMatchResult(data: {
     revalidatePath("/");
 
     return {
-      id: match.id_partido,
-      pair1Name: match.nombre_pareja1,
-      pair2Name: match.nombre_pareja2,
+      id: match.id,
+      pair1Name: pair1.nombre_pareja,
+      pair2Name: pair2.nombre_pareja,
       setPair1: match.resultado?.set_pareja1 ?? undefined,
-      setPair2: match.resultado?.set_pareja2?? undefined,
+      setPair2: match.resultado?.set_pareja2 ?? undefined,
       status: match.estado ?? "unknown",
       winner: match.resultado?.ganador ?? "unknown",
     };
@@ -178,31 +147,39 @@ export async function addMatchResult(data: {
   }
 }
 
-export async function getStandings(): Promise<TeamStanding[]> {
+export async function getStandings(tournamentId = 7): Promise<TeamStanding[]> {
   try {
     // Get all pairs (parejas) instead of teams
-    const pairs = await prisma.pareja.findMany() as Array<{
-      nombre_pareja: string;
-    }>;
+    const pairs = await prisma.torneo_pareja.findMany({
+      where: {
+        id_torneo: tournamentId,
+      },
+      include: {
+        pareja: true,
+      },
+    });
 
     // Get all matches with their results
     const matches = await prisma.partido.findMany({
       include: {
-        resultado: true
+        resultado: true,
       },
       where: {
-        estado: "finalizado" // Only consider finished matches
-      }
+        estado: "finalizado", // Only consider finished matches
+      },
     });
+
+    console.log("Pairs:", pairs);
 
     // Initialize standings for each pair
     const standings: Record<string, TeamStanding> = {};
 
     // Initialize all pairs in standings
     pairs.forEach((pair) => {
-      standings[pair.nombre_pareja] = {
-        id: pair.nombre_pareja,
-        name: pair.nombre_pareja,
+      const idPareja = pair.id;
+      standings[idPareja] = {
+        id: idPareja.toString(),
+        name: pair.pareja.nombre_pareja,
         played: 0,
         won: 0,
         lost: 0,
@@ -211,15 +188,19 @@ export async function getStandings(): Promise<TeamStanding[]> {
         points: 0,
       };
     });
-
     // Calculate statistics based on matches and results
-    matches.forEach((match: { nombre_pareja1: string; nombre_pareja2: string; resultado: { set_pareja1: number | null; set_pareja2: number | null } | null }) => {
+    matches.forEach((match) => {
       if (!match.resultado) return; // Skip if no result
 
-      const pair1 = standings[match.nombre_pareja1];
-      const pair2 = standings[match.nombre_pareja2];
+      const pair1 = standings[match.id_pareja1];
+      const pair2 = standings[match.id_pareja2];
 
-      if (pair1 && pair2 && match.resultado.set_pareja1 !== null && match.resultado.set_pareja2 !== null) {
+      if (
+        pair1 &&
+        pair2 &&
+        match.resultado.set_pareja1 !== null &&
+        match.resultado.set_pareja2 !== null
+      ) {
         // Update pair 1 stats
         pair1.played += 1;
         pair1.gamesFor += match.resultado.set_pareja1;
@@ -264,11 +245,11 @@ export async function getStandings(): Promise<TeamStanding[]> {
 
 export async function getPastMatches() {
   const matches = await prisma.partido.findMany({
-    orderBy: { id_partido: "desc" },
+    orderBy: { id: "desc" },
     select: {
-      id_partido: true,
-      nombre_pareja1: true,
-      nombre_pareja2: true,
+      id: true,
+      id_pareja1: true,
+      id_pareja2: true,
       resultado: {
         select: {
           set_pareja1: true,
@@ -277,6 +258,6 @@ export async function getPastMatches() {
         },
       },
     },
-  })
-  return matches
+  });
+  return matches;
 }

@@ -12,18 +12,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react"
 import { addMatchResult, getTeams } from "@/lib/actions"
 import { useToast } from "@/hooks/use-toast"
-import type { Team } from "@/lib/types"
+import { pareja, Prisma } from "@prisma/client"
 
 const formSchema = z
   .object({
-    pair1Name: z.string().min(1, "Selecciona la pareja 1"),
-    pair2Name: z.string().min(1, "Selecciona la pareja 2"),
+    pair1Id: z.coerce.number().min(1, "Selecciona la pareja 1"),
+    pair2Id: z.coerce.number().min(1, "Selecciona la pareja 2"),
     setPair1: z.coerce.number().min(0, "Mínimo 0 juegos").max(7, "Máximo 7 juegos"),
     setPair2: z.coerce.number().min(0, "Mínimo 0 juegos").max(7, "Máximo 7 juegos"),
   })
-  .refine((data) => data.pair1Name !== data.pair2Name, {
+  .refine((data) => data.pair1Id !== data.pair2Id, {
     message: "Las parejas deben ser diferentes",
-    path: ["pair2Name"],
+    path: ["pair2Id"],
   })
   .refine(
     (data) => {
@@ -42,7 +42,12 @@ const formSchema = z
   )
 
 export default function AddResultForm() {
-  const [teams, setTeams] = useState<Team[]>([])
+  const [teams, setTeams] = useState<Prisma.parejaGetPayload<{
+    include: {
+      jugador1: true,
+      jugador2: true,
+    }
+  }>[]>([])
   const [isLoadingTeams, setIsLoadingTeams] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
@@ -50,8 +55,8 @@ export default function AddResultForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      pair1Name: "",
-      pair2Name: "",
+      pair1Id: 0,
+      pair2Id: 0,
       setPair1: 0,
       setPair2: 0,
     },
@@ -82,8 +87,8 @@ export default function AddResultForm() {
     setIsSubmitting(true)
     try {
       await addMatchResult({
-        pair1Name: values.pair1Name,
-        pair2Name: values.pair2Name,
+        pair1Id: values.pair1Id,
+        pair2Id: values.pair2Id,
         setPair1: values.setPair1,
         setPair2: values.setPair2,
       })
@@ -116,11 +121,11 @@ export default function AddResultForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name="pair1Name"
+                name="pair1Id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Pareja 1</FormLabel>
-                    <Select disabled={isLoadingTeams} onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select disabled={isLoadingTeams} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecciona una pareja" />
@@ -128,8 +133,8 @@ export default function AddResultForm() {
                       </FormControl>
                       <SelectContent>
                         {teams.map((team) => (
-                          <SelectItem key={team.id} value={team.id}>
-                            {team.name}
+                          <SelectItem key={team.id} value={team.id.toString()}>
+                            {team.nombre_pareja}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -140,11 +145,11 @@ export default function AddResultForm() {
               />
               <FormField
                 control={form.control}
-                name="pair2Name"
+                name="pair2Id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Pareja 2</FormLabel>
-                    <Select disabled={isLoadingTeams} onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select disabled={isLoadingTeams} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecciona una pareja" />
@@ -152,8 +157,8 @@ export default function AddResultForm() {
                       </FormControl>
                       <SelectContent>
                         {teams.map((team) => (
-                          <SelectItem key={team.id} value={team.id}>
-                            {team.name}
+                          <SelectItem key={team.id} value={team.id.toString()}>
+                            {team.nombre_pareja}
                           </SelectItem>
                         ))}
                       </SelectContent>

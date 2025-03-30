@@ -3,7 +3,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/client"
 
 export default function RegisterPage() {
   const [name, setName] = useState("")
@@ -13,43 +13,43 @@ export default function RegisterPage() {
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
+    //   e.preventDefault()
+    //   setError("")
 
-    if (!name || !email || !password) {
-      setError("Por favor, completa todos los campos.")
-      return
-    }
+    //   if (!name || !email || !password) {
+    //     setError("Por favor, completa todos los campos.")
+    //     return
+    //   }
 
-    if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres.")
-      return
-    }
+    //   if (password.length < 6) {
+    //     setError("La contraseña debe tener al menos 6 caracteres.")
+    //     return
+    //   }
 
-    try {
-      // Register user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { name } },
-      })
+    //   try {
+    //     // Register user
+    //     const { data: authData, error: authError } = await supabase.auth.signUp({
+    //       email,
+    //       password,
+    //       options: { data: { name } },
+    //     })
 
-      if (authError) throw authError
+    //     if (authError) throw authError
 
-      const userId = authData.user?.id
-      if (!userId) throw new Error("No user ID returned")
+    //     const userId = authData.user?.id
+    //     if (!userId) throw new Error("No user ID returned")
 
-      // Insert profile with default role
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .insert({ user_id: userId, name: name, role: "user" })
+    //     // Insert profile with default role
+    //     const { error: profileError } = await supabase
+    //       .from("profiles")
+    //       .insert({ user_id: userId, name: name, role: "user" })
 
-      if (profileError) throw profileError
+    //     if (profileError) throw profileError
 
-      router.push("/login")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al registrarse")
-    }
+    //     router.push("/login")
+    //   } catch (err) {
+    //     setError(err instanceof Error ? err.message : "Error al registrarse")
+    //   }
   }
 
   // JSX remains the same

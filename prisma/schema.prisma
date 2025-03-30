@@ -8,44 +8,43 @@ datasource db {
 }
 
 model jugador {
-  dni                                 String   @id @db.VarChar(20)
+  id Int @id @default(autoincrement())
+  documento                                 String   @db.VarChar(20)
   nombre                              String   @db.VarChar(50)
   apellido                            String   @db.VarChar(50)
-  pareja_pareja_dni_jugador1Tojugador pareja[] @relation("pareja_dni_jugador1Tojugador")
-  pareja_pareja_dni_jugador2Tojugador pareja[] @relation("pareja_dni_jugador2Tojugador")
+  parejas1                              pareja[] @relation("jugador1")
+  parejas2                              pareja[] @relation("jugador2")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model pareja {
-  nombre_pareja                          String      @id @db.VarChar(50)
-  dni_jugador1                           String      @db.VarChar(20)
-  dni_jugador2                           String      @db.VarChar(20)
-  jugador_pareja_dni_jugador1Tojugador   jugador     @relation("pareja_dni_jugador1Tojugador", fields: [dni_jugador1], references: [dni], onDelete: NoAction, onUpdate: NoAction)
-  jugador_pareja_dni_jugador2Tojugador   jugador     @relation("pareja_dni_jugador2Tojugador", fields: [dni_jugador2], references: [dni], onDelete: NoAction, onUpdate: NoAction)
-  partido_partido_nombre_pareja1Topareja partido[]   @relation("partido_nombre_pareja1Topareja")
-  partido_partido_nombre_pareja2Topareja partido[]   @relation("partido_nombre_pareja2Topareja")
-  resultado                              resultado[]
+  id Int @id @default(autoincrement())
+  nombre_pareja                          String  @unique @db.VarChar(50)
+  id_jugador1 Int
+  id_jugador2 Int
+  jugador1 jugador @relation("jugador1", fields: [id_jugador1], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  jugador2 jugador @relation("jugador2", fields: [id_jugador2], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  torneo_pareja                           torneo_pareja[]
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model partido {
-  id_partido                            Int        @id @default(autoincrement())
-  nombre_pareja1                        String     @db.VarChar(50)
-  nombre_pareja2                        String     @db.VarChar(50)
+  id                            Int        @id @default(autoincrement())
+  id_pareja1                    Int 
+  id_pareja2                    Int
+  pareja1 torneo_pareja @relation("pareja1", fields: [id_pareja1], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  pareja2 torneo_pareja @relation("pareja2", fields: [id_pareja2], references: [id], onDelete: NoAction, onUpdate: NoAction)
   estado                                String?    @default("programado") @db.VarChar(20)
-  pareja_partido_nombre_pareja1Topareja pareja     @relation("partido_nombre_pareja1Topareja", fields: [nombre_pareja1], references: [nombre_pareja], onDelete: NoAction, onUpdate: NoAction)
-  pareja_partido_nombre_pareja2Topareja pareja     @relation("partido_nombre_pareja2Topareja", fields: [nombre_pareja2], references: [nombre_pareja], onDelete: NoAction, onUpdate: NoAction)
   resultado                             resultado?
+  id_torneo                             Int
+  torneo                                torneo   @relation(fields: [id_torneo], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model resultado {
-  id_resultado Int     @id @default(autoincrement())
+  id Int     @id @default(autoincrement())
   id_partido   Int     @unique
   set_pareja1  Int?
   set_pareja2  Int?
-  ganador      String? @db.VarChar(50)
-  pareja       pareja? @relation(fields: [ganador], references: [nombre_pareja], onDelete: NoAction, onUpdate: NoAction)
-  partido      partido @relation(fields: [id_partido], references: [id_partido], onDelete: NoAction, onUpdate: NoAction)
+  ganador      Int?
+  partido      partido @relation(fields: [id_partido], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model profiles {
@@ -53,4 +52,26 @@ model profiles {
   name      String
   role      String   @default("user")
   created_at DateTime @default(now())
+}
+
+model torneo_pareja {
+  id Int @id @default(autoincrement())
+  id_torneo Int
+  id_pareja Int
+  torneo torneo @relation(fields: [id_torneo], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  pareja pareja @relation(fields: [id_pareja], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  partidos_como_pareja1 partido[] @relation("pareja1")
+  partidos_como_pareja2 partido[] @relation("pareja2")
+
+  @@unique([id_torneo, id_pareja])
+}
+
+model torneo {
+  id Int @id @default(autoincrement())
+  nombre_torneo String @db.VarChar(50)
+  lugar String @db.VarChar(50)
+  foto_url String @db.VarChar(255)
+  fecha DateTime
+  parejas torneo_pareja[]
+  partidos partido[]
 }

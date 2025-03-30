@@ -6,9 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Trophy, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ModeToggle } from "@/components/mode-toggle"
-import { supabase } from "@/lib/supabase"
-import { useState, useEffect } from "react"
-
+import { createClient } from "@/lib/supabase/client"
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
@@ -16,6 +14,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       // Get current session
+      const supabase = createClient();
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
       if (sessionError) {
