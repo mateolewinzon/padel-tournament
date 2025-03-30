@@ -32,7 +32,13 @@ export async function getTeams(): Promise<Team[]> {
         jugador_pareja_dni_jugador1Tojugador: true,
         jugador_pareja_dni_jugador2Tojugador: true,
       },
-    })
+    }) as Array<{
+      nombre_pareja: string;
+      dni_jugador1: string;
+      dni_jugador2: string;
+      jugador_pareja_dni_jugador1Tojugador: { nombre: string; apellido: string };
+      jugador_pareja_dni_jugador2Tojugador: { nombre: string; apellido: string };
+    }>
 
     return pairs.map((pair) => ({
       id: pair.nombre_pareja,
@@ -175,7 +181,9 @@ export async function addMatchResult(data: {
 export async function getStandings(): Promise<TeamStanding[]> {
   try {
     // Get all pairs (parejas) instead of teams
-    const pairs = await prisma.pareja.findMany();
+    const pairs = await prisma.pareja.findMany() as Array<{
+      nombre_pareja: string;
+    }>;
 
     // Get all matches with their results
     const matches = await prisma.partido.findMany({
@@ -205,7 +213,7 @@ export async function getStandings(): Promise<TeamStanding[]> {
     });
 
     // Calculate statistics based on matches and results
-    matches.forEach((match) => {
+    matches.forEach((match: { nombre_pareja1: string; nombre_pareja2: string; resultado: { set_pareja1: number | null; set_pareja2: number | null } | null }) => {
       if (!match.resultado) return; // Skip if no result
 
       const pair1 = standings[match.nombre_pareja1];
@@ -252,4 +260,23 @@ export async function getStandings(): Promise<TeamStanding[]> {
     console.error("Error getting standings:", error);
     throw new Error("No se pudo obtener la clasificación");
   }
+}
+
+export async function getPastMatches() {
+  const matches = await prisma.partido.findMany({
+    orderBy: { id_partido: "desc" },
+    select: {
+      id_partido: true,
+      nombre_pareja1: true,
+      nombre_pareja2: true,
+      resultado: {
+        select: {
+          set_pareja1: true,
+          set_pareja2: true,
+          ganador: true,
+        },
+      },
+    },
+  })
+  return matches
 }

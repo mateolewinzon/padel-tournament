@@ -47,3 +47,10 @@ model resultado {
   pareja       pareja? @relation(fields: [ganador], references: [nombre_pareja], onDelete: NoAction, onUpdate: NoAction)
   partido      partido @relation(fields: [id_partido], references: [id_partido], onDelete: NoAction, onUpdate: NoAction)
 }
+
+model profiles {
+  user_id   String   @unique
+  name      String
+  role      String   @default("user")
+  created_at DateTime @default(now())
+}
