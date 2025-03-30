@@ -1,23 +1,17 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-} from "@/components/ui/carousel"
+
 import StandingsTable from "@/components/standings-table"
-import AddResultForm from "@/components/add-result-form"
-import { getIsAdmin } from "@/components/Protected"
-import { getTournament, getTournamentImages } from "@/lib/actions"
+import { getTournament } from "@/lib/actions"
 import PastMatchesList from "@/components/past-matches-list"
 import Images from "./Images"
 import { Suspense } from "react"
+import AddResult from "./AddResult"
+import AddResultButton from "./AddResultButton"
 
 export default async function TournamentPage({ params }: { params: { id: string } }) {
     const paramsData = await params
     const id = paramsData.id
-    const [tournament, isAdmin] = await Promise.all([getTournament(id), getIsAdmin()]);
+    const tournament = await getTournament(id);
 
     if (!tournament) {
         return <div>Torneo no encontrado</div>;
@@ -33,16 +27,18 @@ export default async function TournamentPage({ params }: { params: { id: string 
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="standings">Clasificación</TabsTrigger>
                     <TabsTrigger value="add-match">Partidos</TabsTrigger>
-                    <TabsTrigger disabled={!isAdmin} value="add-result">Añadir Resultado</TabsTrigger>
+                    <Suspense fallback={<TabsTrigger disabled value="add-result">Añadir Resultado</TabsTrigger>}>
+                        <AddResultButton />
+                    </Suspense>
                 </TabsList>
                 <TabsContent value="standings" className="mt-6">
                     <StandingsTable />
                 </TabsContent>
-                {isAdmin && (
                     <TabsContent value="add-result" className="mt-6">
-                        <AddResultForm />
-                    </TabsContent>
-                )}
+                    <Suspense fallback={<div>Cargando...</div>}>
+                        <AddResult />
+                    </Suspense>
+                </TabsContent>
                 <TabsContent value="add-match" className="mt-6">
                     <PastMatchesList tournamentId={id} />
                 </TabsContent>
