@@ -13,7 +13,7 @@ export default async function TournamentsPage() {
           <Link
             key={tournament.id}
             href={`/tournament/${tournament.id}`}
-            className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+            className="block rounded-lg shadow hover:shadow-lg transition-shadow"
           >
             <div className="aspect-video mb-4">
               <img
@@ -23,8 +23,8 @@ export default async function TournamentsPage() {
               />
             </div>
             <h2 className="text-xl font-semibold mb-2">{tournament.nombre_torneo}</h2>
-            <p className="text-gray-600 mb-2">{tournament.lugar}</p>
-            <p className="text-gray-500">
+            <p className="mb-2">{tournament.lugar}</p>
+            <p className="">
               {new Date(tournament.fecha).toLocaleDateString()}
             </p>
           </Link>
